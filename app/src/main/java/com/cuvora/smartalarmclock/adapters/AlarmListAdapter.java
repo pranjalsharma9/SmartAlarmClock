@@ -52,42 +52,66 @@ public class AlarmListAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int i, View view, ViewGroup viewGroup) {
+        // ViewHolder design for smoother scrolling.
+        ViewHolder viewHolder;
+
         if (view == null) {
             view = LayoutInflater.from(context).inflate(R.layout.alarm_list_item, viewGroup, false);
+            viewHolder = new ViewHolder(view);
+            view.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder) view.getTag();
         }
+
+        // Get the alarm for position i.
         Alarm alarm = (Alarm) getItem(i);
+
         String time = alarm.getTimeToReach() + "";
-        ((TextView) view.findViewById(R.id.alarm_time_to_reach)).setText(time);
-        ((TextView) view.findViewById(R.id.alarm_end_location))
-                .setText(alarm.getEndLocation().getName());
-        LinearLayout weekdaysContainer = (LinearLayout) view.findViewById(R.id.weekdays_parent);
+        viewHolder.alarmTimeToReach.setText(time);
+        viewHolder.destinationName.setText(alarm.getEndLocation().getName());
         boolean[] weekdays = Alarm.breakRepeatCode(alarm.getRepeatCode());
         for (int j = 0; j < 7; j++) {
             if (weekdays[j]) {
-                ((TextView) weekdaysContainer.getChildAt(j))
-                        .setTextColor(Color.argb(200, 50, 200, 70));
+                viewHolder.weekdays[j].setTextColor(Color.argb(200, 50, 200, 70));
             } else {
-                ((TextView) weekdaysContainer.getChildAt(j))
-                        .setTextColor(Color.argb(200, 150, 150, 150));
+                viewHolder.weekdays[j].setTextColor(Color.argb(200, 150, 150, 150));
             }
         }
 
         // Set the onCheckedChangeListener and the state of the switch.
         // Set alarmSwitch checked only after setting the new onCheckedChangeListener()
-        SwitchCompat alarmSwitch = (SwitchCompat) view.findViewById(R.id.alarm_switch);
-        alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        viewHolder.alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 listener.onSwitchChanged(i, b);
             }
         });
-        // This statement should follow the statements above.
-        alarmSwitch.setChecked(alarm.isOn());
+        // This statement should follow the statement above.
+        viewHolder.alarmSwitch.setChecked(alarm.isOn());
         return view;
     }
 
     public interface AlarmSwitchListener {
         void onSwitchChanged (int position, boolean isOn);
+    }
+
+    // ViewHolder class to make the ListView experience faster and smoother.
+    private static class ViewHolder {
+        TextView alarmTimeToReach;
+        TextView destinationName;
+        TextView[] weekdays;
+        SwitchCompat alarmSwitch;
+
+        ViewHolder (View view) {
+            alarmTimeToReach = (TextView) view.findViewById(R.id.alarm_time_to_reach);
+            destinationName = (TextView) view.findViewById(R.id.alarm_end_location);
+            weekdays = new TextView[7];
+            LinearLayout weekdaysParent = (LinearLayout) view.findViewById(R.id.weekdays_parent);
+            for (int i = 0; i < 7; i++) {
+                weekdays[i] = (TextView) weekdaysParent.getChildAt(i);
+            }
+            alarmSwitch = (SwitchCompat) view.findViewById(R.id.alarm_switch);
+        }
     }
 
 }
