@@ -2,10 +2,8 @@ package com.cuvora.smartalarmclock;
 
 import android.content.Context;
 import android.content.Intent;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -31,7 +29,8 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        AlarmListAdapter.AlarmSwitchListener {
 
     public static final String ALARM_DATA_FILE = "alarmData";
     public static final String TAG = "MainActivity";
@@ -47,11 +46,12 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //Display the list of alarms
+        // Display the list of alarms
         alarms = readAlarms();
-        alarmListAdapter = new AlarmListAdapter(this, alarms);
+        alarmListAdapter = new AlarmListAdapter(this, alarms, this);
         ((ListView) findViewById(R.id.alarm_list)).setAdapter(alarmListAdapter);
 
+        // Setting the floating action button's onClickListener
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         final Context thisActivity = this;
         fab.setOnClickListener(new View.OnClickListener() {
@@ -133,6 +133,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    // Read the list of alarms from the private file.
     private ArrayList<Alarm> readAlarms () {
         ArrayList<Alarm> alarms = new ArrayList<>();
         try {
@@ -168,6 +169,7 @@ public class MainActivity extends AppCompatActivity
         return alarms;
     }
 
+    // Write the list of alarms to the private file
     private void writeAlarms (ArrayList<Alarm> alarms) {
         try {
             ObjectOutputStream out = new ObjectOutputStream(
@@ -187,12 +189,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // Update the alarm list with this new alarm item, notifying the adapter and storing
+    // alarm data persistently.
     private void updateAlarmList (Alarm alarm) {
         alarms.add(alarm);
         alarmListAdapter.notifyDataSetChanged();
         writeAlarms(alarms);
     }
 
+    // Gets the result back from other activities started for result from this activity.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if ((requestCode == ADD_ALARM_REQUEST) && (resultCode == RESULT_OK) && (data != null)) {
@@ -201,4 +206,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // Checks if the alarm state 'on' is changed and stores the change persistently if so.
+    @Override
+    public void onSwitchChanged(int position, boolean isOn) {
+        // If the switch is changed (and not just set to a value),
+        // update the alarm list in the private file as well as the alarms ArrayList.
+        if (alarms.get(position).isOn() != isOn) {
+            alarms.get(position).setOn(isOn);
+            alarmListAdapter.notifyDataSetChanged();
+            writeAlarms(alarms);
+        }
+    }
 }
