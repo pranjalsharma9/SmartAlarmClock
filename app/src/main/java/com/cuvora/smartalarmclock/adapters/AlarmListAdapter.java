@@ -72,9 +72,9 @@ public class AlarmListAdapter extends BaseAdapter {
         boolean[] weekdays = Alarm.breakRepeatCode(alarm.getRepeatCode());
         for (int j = 0; j < 7; j++) {
             if (weekdays[j]) {
-                viewHolder.weekdays[j].setTextColor(Color.argb(200, 50, 200, 70));
+                viewHolder.weekdays[j].setTextColor(Color.argb(255, 77, 208, 225));
             } else {
-                viewHolder.weekdays[j].setTextColor(Color.argb(200, 150, 150, 150));
+                viewHolder.weekdays[j].setTextColor(Color.argb(100, 84, 110, 122));
             }
         }
 
